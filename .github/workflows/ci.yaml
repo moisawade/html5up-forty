@@ -7,7 +7,7 @@ on:
 
 env:
   IMAGE_NAME: ci-html-demo
-  IMAGE_TAG: latest
+  IMAGE_TAG: 1.0.0
   DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
 
 jobs:
@@ -58,26 +58,26 @@ jobs:
   # ===============================
   # JOB 2 - CD : DEPLOY
   # ===============================
-  deploy:
-    needs: ci
-    runs-on: self-hosted
-
-    steps:
-      - name: Pull latest image
-        run: |
-          docker pull $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
-
-      - name: Stop existing container
-        run: |
-          docker stop ci-app || true
-
-      - name: Remove old container
-        run: |
-          docker rm ci-app || true
-
-      - name: Run new container
-        run: |
-          docker run -d \
-            -p 80:80 \
-            --name ci-app \
-            $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+#  deploy:
+#    needs: ci
+#    runs-on: self-hosted
+#
+#    steps:
+#      - name: Pull latest image
+#        run: |
+#          docker pull $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+#
+#      - name: Stop existing container
+#        run: |
+#          docker stop ci-app || true
+#
+#      - name: Remove old container
+#        run: |
+#          docker rm ci-app || true
+#
+#      - name: Run new container
+#        run: |
+#          docker run -d \
+#            -p 80:80 \
+#            --name ci-app \
+#            $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
