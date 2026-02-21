@@ -59,10 +59,14 @@ jobs:
   # JOB 2 - CD : DEPLOY
   # ===============================
   deploy:
-    #needs: ci
+    needs: ci
     runs-on: aws-runner
 
     steps:
+      - name: Pull latest image
+        run: |
+          echo "Hello deploy"
+
       - name: Pull latest image
         run: |
           docker pull $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
