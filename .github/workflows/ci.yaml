@@ -1,0 +1,83 @@
+name: CI-CD Docker Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  IMAGE_NAME: ci-html-demo
+  IMAGE_TAG: latest
+  DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
+
+jobs:
+
+  # ===============================
+  # JOB 1 - CI : BUILD + PUSH + SCAN
+  # ===============================
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Display variables
+        run: |
+          echo "IMAGE_NAME: $IMAGE_NAME"
+          echo "IMAGE_TAG: $IMAGE_TAG"
+          echo "DOCKER_REGISTRY: $DOCKER_REGISTRY"
+
+      - name: Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | \
+          docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: |
+          docker build -t $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG .
+
+      - name: Verify image
+        run: |
+          docker image ls | grep $IMAGE_NAME
+
+      - name: Push Docker image
+        run: |
+          docker push $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/ci-html-demo:latest
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: 1
+          vuln-type: os,library
+          ignore-unfixed: true
+
+  # ===============================
+  # JOB 2 - CD : DEPLOY
+  # ===============================
+  deploy:
+    needs: ci
+    runs-on: self-hosted
+
+    steps:
+      - name: Pull latest image
+        run: |
+          docker pull $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+
+      - name: Stop existing container
+        run: |
+          docker stop ci-app || true
+
+      - name: Remove old container
+        run: |
+          docker rm ci-app || true
+
+      - name: Run new container
+        run: |
+          docker run -d \
+            -p 80:80 \
+            --name ci-app \
+            $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
