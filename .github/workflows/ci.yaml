@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  IMAGE_NAME: ci-html-demo
+  IMAGE_NAME: ci-html
   IMAGE_TAG: 1.0.0
   DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
 
