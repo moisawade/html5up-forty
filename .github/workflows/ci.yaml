@@ -59,7 +59,7 @@ jobs:
   # JOB 2 - CD : DEPLOY
   # ===============================
   deploy:
-    needs: ci
+    #needs: ci
     runs-on: aws-runner
 
     steps:
