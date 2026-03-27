@@ -3,46 +3,41 @@ name: CI-CD Docker Pipeline
 on:
   push:
     branches:
-      - [cite_start]main  # Configuré pour s'exécuter sur la branche main [cite: 5]
+      - [cite_start]main # Objectif 1 : s'exécuter sur main [cite: 5]
 
 env:
   IMAGE_NAME: ci-html
   IMAGE_TAG: 1.0.1
-  DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
 
 jobs:
-  # JOB 1 : Construction de l'image
+  # Étape 1 : Construction locale (sans Docker Hub pour l'instant)
   ci:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
-      - name: Login to Docker Hub
-        run: |
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" | \
-          docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-      - name: Build Docker image
-        run: docker build -t $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG .
-      - name: Push Docker image
-        run: docker push $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+      - name: Build Docker image locally
+        run: docker build -t $IMAGE_NAME:$IMAGE_TAG . # Objectif 2 : corriger le build [cite: 6]
 
-  # JOB 2 (Bonus) : Scan de sécurité avec Trivy 
+  # Étape 2 (Bonus) : Scan de sécurité [cite: 7, 11]
   scan-trivy:
     needs: ci
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/ci-html:1.0.1
-          format: table
-          severity: CRITICAL,HIGH
-          [cite_start]exit-code: 1 # Assure la sécurité avant déploiement 
+          image-ref: 'ci-html:1.0.1'
+          format: 'table'
+          [cite_start]exit-code: 1 # Assure la sécurité avant déploiement [cite: 7, 11]
+          severity: 'CRITICAL,HIGH'
 
-  # JOB 3 : Déploiement 
+  # Étape 3 : Déploiement simulé
   deploy:
-    [cite_start]needs: scan-trivy # Placé après le job de scan 
-    runs-on: ubuntu-latest # Modifié pour fonctionner sans serveur privé
+    [cite_start]needs: scan-trivy # Objectif : après le scan [cite: 11]
+    runs-on: ubuntu-latest
     steps:
-      - name: Deploy image
-        run: echo "Le déploiement est lancé après un scan réussi !"
+      - name: Deploy
+        run: echo "Déploiement réussi après scan de sécurité !"
