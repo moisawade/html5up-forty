@@ -17,12 +17,12 @@ jobs:
         run: docker build -t html5up-image:latest .
 
       - name: Run Trivy security scan
-        uses: aquasecurity/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@v0.28.0
         with:
           image-ref: "html5up-image:latest"
           format: "table"
-          exit-code: 0 # Permet de continuer mÃªme s'il y a des failles pour voir le rÃ©sultat vert
+          exit-code: 0
           severity: "CRITICAL,HIGH"
 
       - name: Simulation Deploy
-        run: echo "L'image a Ã©tÃ© buildÃ©e et scannÃ©e avec succÃ¨s. PrÃªte pour la production !"
+        run: echo "L'image a été buildée et scannée avec succès. Prête pour la production !"
