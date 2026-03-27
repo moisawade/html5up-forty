@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest    
     steps:
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.20.0
+        uses: aquasecurity/trivy-action@main
         with:
           image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/ci-html-demo:latest
           format: table
@@ -63,7 +63,7 @@ jobs:
   # JOB 2 - CD : DEPLOY
   # ===============================
   deploy:
-    needs: ci
+    needs: scan
     runs-on: runner-lab
 
     steps:
