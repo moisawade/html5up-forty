@@ -44,7 +44,11 @@ jobs:
       - name: Push Docker image
         run: |
           docker push $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
-
+#job scan with trivy
+  scan:
+    needs: ci
+    runs-on: ubuntu-latest    
+    steps:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.20.0
         with:
