@@ -60,7 +60,7 @@ jobs:
   # ===============================
   deploy:
     needs: ci
-    runs-on: aws-runner
+    runs-on: runner-lab
 
     steps:
       - name: Pull latest image
