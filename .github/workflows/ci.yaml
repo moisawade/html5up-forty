@@ -1,16 +1,16 @@
 name: CI-CD Docker Pipeline
 
-  on:
+on:
     push:
       branches:
         - main
 
-  env:
+env:
     IMAGE_NAME: webapp-ci-cd
     IMAGE_TAG: 1.0.1
     DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
 
-  jobs:
+jobs:
     ci:
       runs-on: ubuntu-latest
       steps:
