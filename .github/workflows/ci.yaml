@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest    
     steps:
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@main
+        uses: aquasecurity/trivy-action@v0.35.0
         with:
           image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/ci-html-demo:latest
           format: table
