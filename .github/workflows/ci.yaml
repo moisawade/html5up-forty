@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - trivy   # branche dédiée au bonus Trivy
 
 env:
   IMAGE_NAME: ci-html
@@ -11,13 +12,11 @@ env:
   DOCKER_REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
 
 jobs:
-
   # ===============================
-  # JOB 1 - CI : BUILD + PUSH + SCAN
+  # JOB 1 - CI : BUILD + PUSH
   # ===============================
   ci:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -25,7 +24,7 @@ jobs:
       - name: Display variables
         run: |
           echo "IMAGE_NAME: $IMAGE_NAME"
-          echo "IMAGE_TAG: $IMAGE_TAG"
+          echo "IMAGE_TAG:  $IMAGE_TAG"
           echo "DOCKER_REGISTRY: $DOCKER_REGISTRY"
 
       - name: Login to Docker Hub
@@ -37,7 +36,7 @@ jobs:
         run: |
           docker build -t $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG .
 
-      - name: Verify image
+      - name: Verify image locally
         run: |
           docker image ls | grep $IMAGE_NAME
 
@@ -45,28 +44,52 @@ jobs:
         run: |
           docker push $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
 
+  # ===============================
+  # JOB 2 - SCAN TRIVY (BONUS)
+  # ===============================
+  scan-trivy:
+    needs: ci                  # on attend que le build soit terminé
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/ci-html-demo:latest
+          # Pointe vers l'image réellement buildée et pushée
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           format: table
           severity: CRITICAL,HIGH
-          exit-code: 1
+          exit-code: 1          # pour faire échouer le pipeline si vulnérabilité critique trouvée
           vuln-type: os,library
           ignore-unfixed: true
 
+      # (Optionnel) Export SARIF pour l'onglet Security de GitHub
+      - name: Run Trivy — format SARIF
+        uses: aquasecurity/trivy-action@0.20.0
+        if: always()            # génère le rapport même si le scan précédent échoue
+        with:
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          vuln-type: os,library
+          ignore-unfixed: true
+
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+
   # ===============================
-  # JOB 2 - CD : DEPLOY
+  # JOB 3 - CD : DEPLOY
   # ===============================
   deploy:
-    needs: ci
-    runs-on: aws-runner
-
+    needs: scan-trivy            # on attend que le scan soit OK avant de déployer
+    runs-on: ubuntu-latest       # on va le remplacer par aws-runner quand notre runner est prêt
     steps:
-      - name: Pull latest image
-        run: |
-          echo "Hello deploy"
-
       - name: Pull latest image
         run: |
           docker pull $DOCKER_REGISTRY/$IMAGE_NAME:$IMAGE_TAG
