@@ -1,18 +1,22 @@
-# Use official Nginx image as base (for serving static content)
+# Étape 1 : Build (Préparation des fichiers)
+FROM alpine:latest AS builder
+
+# Définition du dossier de travail pour regrouper les assets
+WORKDIR /app
+
+# Copie de tous les fichiers et dossiers sources dans l'image temporaire
+COPY index.html elements.html generic.html landing.html LICENSE.txt README.txt ./
+COPY assets/ ./assets/
+COPY images/ ./images/
+
+# Étape 2 : Production (Image finale optimisée)
 FROM nginx:alpine
 
-# Copy our app files into the default Nginx document root (/usr/share/nginx/html)
-COPY index.html /usr/share/nginx/html/
-COPY elements.html /usr/share/nginx/html/
-COPY generic.html /usr/share/nginx/html/
-COPY landing.html /usr/share/nginx/html/
-COPY assets /usr/share/nginx/html/assets
-COPY images /usr/share/nginx/html/images
-COPY LICENSE.txt /usr/share/nginx/html/
-COPY README.txt /usr/share/nginx/html/
+# Copie uniquement des fichiers préparés depuis l'étape 'builder'
+COPY --from=builder /app /usr/share/nginx/html
 
-# Expose port 80 for HTTP access (Nginx listens on port 80 by default)
+# Exposition du port HTTP
 EXPOSE 80
 
-# Run command when container starts up
+# Lancement de Nginx
 CMD ["nginx", "-g", "daemon off;"]
