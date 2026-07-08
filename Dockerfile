@@ -1,6 +1,6 @@
 # Étape 1 : Build (Préparation des fichiers)
 FROM alpine:latest AS builder
-
+USER root
 # Définition du dossier de travail pour regrouper les assets
 WORKDIR /app
 
