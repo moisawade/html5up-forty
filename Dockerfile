@@ -1,24 +1,38 @@
-# Étape 1 : Build (Préparation des fichiers)
+# --------------------------------------------------------------------
+# Stage 1 - Build
+# --------------------------------------------------------------------
 FROM alpine:latest AS builder
-USER root
-# Définition du dossier de travail pour regrouper les assets
+
 WORKDIR /app
 
-# Copie de tous les fichiers et dossiers sources dans l'image temporaire
 COPY index.html elements.html generic.html landing.html LICENSE.txt README.txt ./
 COPY assets/ ./assets/
 COPY images/ ./images/
 
-# Étape 2 : Production (Image finale optimisée)
-#FROM nginx:alpine
+# --------------------------------------------------------------------
+# Stage 2 - Runtime
+# --------------------------------------------------------------------
 FROM nginxinc/nginx-unprivileged:stable
-USER 101
 
-# Copie uniquement des fichiers préparés depuis l'étape 'builder'
+# Copy application
 COPY --from=builder /app /usr/share/nginx/html
 
-# Exposition du port HTTP
+# Replace the default nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Create writable directories for OpenShift
+RUN mkdir -p \
+        /tmp/nginx/client_temp \
+        /tmp/nginx/proxy_temp \
+        /tmp/nginx/fastcgi_temp \
+        /tmp/nginx/uwsgi_temp \
+        /tmp/nginx/scgi_temp \
+    && chmod -R g=u /tmp \
+    && chmod -R g=u /usr/share/nginx/html
+
+# OpenShift injects a random UID belonging to group 0
+#USER 101
+
 EXPOSE 8080
 
-# Lancement de Nginx
 CMD ["nginx", "-g", "daemon off;"]
