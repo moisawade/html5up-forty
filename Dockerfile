@@ -17,8 +17,6 @@ FROM nginxinc/nginx-unprivileged:stable
 # Copy application
 COPY --from=builder /app /usr/share/nginx/html
 
-# Replace the default nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
 
 # Create writable directories for OpenShift
 RUN mkdir -p \
