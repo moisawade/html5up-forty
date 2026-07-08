@@ -11,7 +11,7 @@ COPY images/ ./images/
 
 # Étape 2 : Production (Image finale optimisée)
 #FROM nginx:alpine
-FROM registry.redhat.io/ubi9/nginx-124
+FROM nginxinc/nginx-unprivileged:stable
 
 # Copie uniquement des fichiers préparés depuis l'étape 'builder'
 COPY --from=builder /app /usr/share/nginx/html
