@@ -10,7 +10,8 @@ COPY assets/ ./assets/
 COPY images/ ./images/
 
 # Étape 2 : Production (Image finale optimisée)
-FROM nginx:alpine
+#FROM nginx:alpine
+FROM registry.redhat.io/ubi9/nginx-124
 
 # Copie uniquement des fichiers préparés depuis l'étape 'builder'
 COPY --from=builder /app /usr/share/nginx/html
@@ -19,4 +20,4 @@ COPY --from=builder /app /usr/share/nginx/html
 EXPOSE 80
 
 # Lancement de Nginx
-CMD ["nginx", "-g", "daemon off;"]
+#CMD ["nginx", "-g", "daemon off;"]
