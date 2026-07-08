@@ -12,12 +12,13 @@ COPY images/ ./images/
 # Étape 2 : Production (Image finale optimisée)
 #FROM nginx:alpine
 FROM nginxinc/nginx-unprivileged:stable
+USER 101
 
 # Copie uniquement des fichiers préparés depuis l'étape 'builder'
 COPY --from=builder /app /usr/share/nginx/html
 
 # Exposition du port HTTP
-EXPOSE 80
+EXPOSE 8080
 
 # Lancement de Nginx
-#CMD ["nginx", "-g", "daemon off;"]
+CMD ["nginx", "-g", "daemon off;"]
