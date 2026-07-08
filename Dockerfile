@@ -12,7 +12,7 @@ COPY images ./images
 # -----------------------------------------------------
 # Stage 2 - Runtime
 # -----------------------------------------------------
-FROM image-registry.openshift-image-registry.svc:5000/openshift/nginx:latest
+FROM docker pull registry.redhat.io/rhel9/nginx-126:9.8-1782911077
 
 USER root
 
